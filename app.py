@@ -66,10 +66,27 @@ SAMPLE_MESSAGES = {
 
 @st.cache_resource
 def load_models():
-    """Loads pre-trained pipelines cached in memory to ensure fast startup."""
+    """Loads pre-trained pipelines cached in memory. Auto-trains if models are missing."""
     best_path = os.path.join(BASE_DIR, "models", "best_model.joblib")
     comp_path = os.path.join(BASE_DIR, "models", "comparison_model.joblib")
     
+    # Auto-train if models are missing (e.g. fresh clone or missing upload)
+    if not os.path.exists(best_path) or not os.path.exists(comp_path):
+        try:
+            cleaned_csv = os.path.join(BASE_DIR, "data", "cleaned_messages.csv")
+            if not os.path.exists(cleaned_csv):
+                raw_csv = os.path.join(BASE_DIR, "data", "raw_messages.csv")
+                if not os.path.exists(raw_csv):
+                    from build_dataset import build_raw_dataset
+                    build_raw_dataset(raw_csv)
+                from clean_data import preprocess_and_clean
+                charts_folder = os.path.join(BASE_DIR, "results", "charts")
+                preprocess_and_clean(raw_csv, cleaned_csv, charts_folder)
+            from train_model import train_and_evaluate_all
+            train_and_evaluate_all()
+        except Exception as e:
+            print(f"[WARNING] Auto-training fallback encountered: {e}")
+
     best_model = joblib.load(best_path) if os.path.exists(best_path) else None
     comp_model = joblib.load(comp_path) if os.path.exists(comp_path) else None
     return best_model, comp_model
@@ -167,19 +184,22 @@ if analyze_button:
         st.warning("⚠️ Input Warning: The message is extremely brief (< 3 words). Detection accuracy may be reduced.")
     elif len(cleaned_input) > 10000:
         st.error("❌ Input Error: Message exceeds maximum permitted length (10,000 characters).")
-    elif best_model is None:
-        st.error("❌ Model Error: Pre-trained model pipeline not found in `models/best_model.joblib`.")
     else:
         # 2. Offline Lexical and URL Feature Extraction
         url_features = extract_safe_url_features(cleaned_input)
         observed = analyze_observed_indicators(cleaned_input, url_features)
         rule_score, rule_cat, rule_reasons = rule_based_scorer(cleaned_input, url_features)
         
-        # 3. Model Inference
-        ml_prob = best_model.predict_proba([cleaned_input])[0, 1]
+        # 3. Model Inference (with graceful heuristic fallback)
+        if best_model is not None:
+            ml_prob = float(best_model.predict_proba([cleaned_input])[0, 1])
+        else:
+            # Fallback estimation if model files are unreadable
+            st.info("ℹ️ Note: Running in heuristic assessment mode.")
+            ml_prob = float(rule_score) / 100.0
         
         # Comparison Model Inference (if present)
-        comp_prob = comp_model.predict_proba([cleaned_input])[0, 1] if comp_model else None
+        comp_prob = float(comp_model.predict_proba([cleaned_input])[0, 1]) if comp_model else None
         
         # 4. Uncertainty & Risk Assessment
         assessment = evaluate_risk_and_uncertainty(ml_prob, rule_score, observed)
