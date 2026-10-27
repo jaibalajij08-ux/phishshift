@@ -1,0 +1,4 @@
+Model,Accuracy,Precision,Recall,F1-Score,False_Positive_Rate
+Rule-Based Baseline,0.8,1.0,0.5714,0.7273,0.0
+TF-IDF + Logistic Regression,0.7778,0.7895,0.7143,0.75,0.1667
+TF-IDF + Multinomial Naive Bayes,0.8444,0.8182,0.8571,0.8372,0.1667

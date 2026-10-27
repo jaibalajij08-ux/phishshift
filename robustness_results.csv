@@ -1,0 +1,9 @@
+Test_ID,Variation_Name,Original_Category,Original_Prob,Modified_Category,Modified_Prob,Prediction_Changed,Caused_Error,Behavior_Analysis
+ROB-01,Aggressive All-Caps Transformation,Likely Phishing,79.8%,Likely Phishing,79.8%,NO,NO,Robust: successfully maintained Likely Phishing assessment despite perturbation.
+ROB-02,Excessive Whitespace & Tab Insertion,Uncertain,57.4%,Uncertain,57.4%,NO,NO,Robust: successfully maintained Uncertain assessment despite perturbation.
+ROB-03,Punctuation Obfuscation,Uncertain,62.5%,Uncertain,54.8%,NO,NO,Robust: successfully maintained Uncertain assessment despite perturbation.
+ROB-04,Harmless Synonym Substitution,Uncertain,58.0%,Uncertain,49.5%,NO,NO,Robust: successfully maintained Uncertain assessment despite perturbation.
+ROB-05,Equivalent URL Protocol and Host Casing,Likely Phishing,82.7%,Likely Phishing,82.5%,NO,NO,Robust: successfully maintained Likely Phishing assessment despite perturbation.
+ROB-06,Legitimate Operational Urgency (False Positive Test),Uncertain,37.7%,Uncertain,41.6%,NO,NO,Robust: successfully maintained Uncertain assessment despite perturbation.
+ROB-07,Novel Unfamiliar Template (MFA Push Fatigue),Uncertain,61.1%,Likely Phishing,66.1%,YES,NO,Prediction changed from Uncertain to Likely Phishing.
+ROB-08,Character Leetspeak / Homoglyph Evasion,Likely Phishing,68.4%,Uncertain,47.3%,YES,NO,"Shifted to Uncertain: the perturbation reduced feature confidence, prompting safe abstention."
